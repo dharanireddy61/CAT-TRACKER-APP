@@ -1,21 +1,818 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="CAT 2025 Preparation Tracker App - Track hours, syllabus, and performance"
-    />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <!-- Manifest.json provides metadata used when your web app is added to the homescreen -->
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <title>CAT 2025 Tracker</title>
-  </head>
-  <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
-  </body>
-</html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>CAT 2025 Prep Tracker - Advanced</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 100%;
+            padding: 10px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            text-align: center;
+            color: white;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+            font-weight: 700;
+        }
+
+        .days-counter {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: #FFD700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            margin-bottom: 10px;
+        }
+
+        .percentile-projection {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+
+        .percentile-number {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #00FF88;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .card h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .metric-number {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #667eea;
+            display: block;
+        }
+
+        .metric-label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 3px;
+        }
+
+        .section-tracker {
+            display: grid;
+            gap: 12px;
+        }
+
+        .section-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            border-left: 4px solid;
+        }
+
+        .section-card.qa { border-left-color: #FF6B6B; }
+        .section-card.dilr { border-left-color: #4ECDC4; }
+        .section-card.varc { border-left-color: #45B7D1; }
+
+        .section-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .section-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #333;
+        }
+
+        .section-percentage {
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .qa .section-percentage { color: #FF6B6B; }
+        .dilr .section-percentage { color: #4ECDC4; }
+        .varc .section-percentage { color: #45B7D1; }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.6s ease;
+        }
+
+        .qa .progress-fill { background: linear-gradient(90deg, #FF6B6B, #FF5252); }
+        .dilr .progress-fill { background: linear-gradient(90deg, #4ECDC4, #26C6DA); }
+        .varc .progress-fill { background: linear-gradient(90deg, #45B7D1, #42A5F5); }
+
+        .subtopic-list {
+            margin-top: 10px;
+        }
+
+        .subtopic-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .subtopic-checkbox {
+            width: 18px;
+            height: 18px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            margin-right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .subtopic-item.completed .subtopic-checkbox {
+            background: #4CAF50;
+            border-color: #4CAF50;
+        }
+
+        .subtopic-checkbox::after {
+            content: '✓';
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .subtopic-item.completed .subtopic-checkbox::after {
+            opacity: 1;
+        }
+
+        .subtopic-name {
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        .subtopic-item.completed .subtopic-name {
+            text-decoration: line-through;
+            color: #888;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #555;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: white;
+            transition: all 0.3s ease;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .action-button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .action-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .action-button:active {
+            transform: translateY(0);
+        }
+
+        .streak-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            color: #FF6B6B;
+        }
+
+        .flame {
+            font-size: 1.2rem;
+            animation: flicker 1.5s infinite alternate;
+        }
+
+        @keyframes flicker {
+            0% { opacity: 0.8; }
+            100% { opacity: 1; }
+        }
+
+        .target-vs-actual {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .target-card {
+            text-align: center;
+            padding: 12px;
+            border-radius: 10px;
+        }
+
+        .target-card.target {
+            background: linear-gradient(135deg, #FFF3E0, #FFE0B2);
+            color: #E65100;
+        }
+
+        .target-card.actual {
+            background: linear-gradient(135deg, #E8F5E8, #C8E6C9);
+            color: #2E7D32;
+        }
+
+        .target-number {
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        .target-label {
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+
+        .simulation-result {
+            background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+            padding: 15px;
+            border-radius: 12px;
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .simulation-text {
+            color: #1565C0;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .projection-meter {
+            width: 100%;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 10px 0;
+            position: relative;
+        }
+
+        .projection-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #FF6B6B 0%, #FFA726 30%, #66BB6A 60%, #42A5F5 100%);
+            border-radius: 15px;
+            transition: width 1s ease;
+            position: relative;
+        }
+
+        .projection-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 480px) {
+            .container {
+                padding: 8px;
+            }
+            
+            .header {
+                padding: 15px;
+            }
+            
+            .card {
+                padding: 15px;
+            }
+            
+            .input-row {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+            
+            .dashboard-grid {
+                gap: 8px;
+            }
+        }
+
+        /* Prevent zoom on iOS */
+        @media screen and (-webkit-min-device-pixel-ratio: 0) {
+            .input-field {
+                font-size: 16px;
+            }
+        }
+
+        /* Touch-friendly */
+        .subtopic-item, .action-button {
+            min-height: 44px;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 15px;
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border-radius: 8px;
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .nav-tab.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header Dashboard -->
+        <div class="header">
+            <h1>🎯 CAT 2025 Prep Tracker</h1>
+            <div class="days-counter" id="daysCounter">7 Days to CAT</div>
+            <div class="percentile-projection">
+                <div>Projected Percentile</div>
+                <div class="percentile-number" id="projectedPercentile">94.2%</div>
+            </div>
+            <div class="streak-indicator">
+                <span class="flame">🔥</span>
+                <span id="streakCount">12 Day Streak</span>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <div class="nav-tab active" onclick="switchTab('dashboard')">📊 Dashboard</div>
+            <div class="nav-tab" onclick="switchTab('syllabus')">📚 Syllabus</div>
+            <div class="nav-tab" onclick="switchTab('simulation')">🎯 Simulation</div>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content active">
+            <!-- Quick Stats -->
+            <div class="card">
+                <h2>📈 Quick Overview</h2>
+                <div class="dashboard-grid">
+                    <div class="metric-card">
+                        <span class="metric-number" id="totalHours">156</span>
+                        <div class="metric-label">Total Hours</div>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-number" id="avgDaily">8.2</span>
+                        <div class="metric-label">Daily Avg</div>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-number" id="mockTests">12</span>
+                        <div class="metric-label">Mock Tests</div>
+                    </div>
+                    <div class="metric-card">
+                        <span class="metric-number" id="overallProgress">78%</span>
+                        <div class="metric-label">Overall Progress</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weekly Target vs Actual -->
+            <div class="card">
+                <h2>🎯 This Week's Progress</h2>
+                <div class="target-vs-actual">
+                    <div class="target-card target">
+                        <div class="target-number" id="weeklyTarget">50h</div>
+                        <div class="target-label">Weekly Target</div>
+                    </div>
+                    <div class="target-card actual">
+                        <div class="target-number" id="weeklyActual">42h</div>
+                        <div class="target-label">This Week</div>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="weeklyProgress" style="width: 84%"></div>
+                </div>
+            </div>
+
+            <!-- Section-wise Split -->
+            <div class="card">
+                <h2>📊 Section-wise Prep Split</h2>
+                <div class="section-tracker">
+                    <div class="section-card qa">
+                        <div class="section-header">
+                            <div class="section-title">🔢 Quantitative Aptitude</div>
+                            <div class="section-percentage">85%</div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 85%"></div>
+                        </div>
+                        <div style="font-size: 0.85rem; color: #666; margin-top: 8px;">
+                            32/40 topics • 28 hours this week
+                        </div>
+                    </div>
+                    
+                    <div class="section-card dilr">
+                        <div class="section-header">
+                            <div class="section-title">🧩 Data Interpretation & LR</div>
+                            <div class="section-percentage">72%</div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 72%"></div>
+                        </div>
+                        <div style="font-size: 0.85rem; color: #666; margin-top: 8px;">
+                            18/25 topics • 20 hours this week
+                        </div>
+                    </div>
+                    
+                    <div class="section-card varc">
+                        <div class="section-header">
+                            <div class="section-title">📖 Verbal Ability & RC</div>
+                            <div class="section-percentage">68%</div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 68%"></div>
+                        </div>
+                        <div style="font-size: 0.85rem; color: #666; margin-top: 8px;">
+                            15/22 topics • 18 hours this week
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daily Input -->
+            <div class="card">
+                <h2>📝 Today's Log</h2>
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="hoursToday">Hours Today:</label>
+                        <input type="number" id="hoursToday" class="input-field" placeholder="8.5" min="0" max="16" step="0.5">
+                    </div>
+                    <div class="input-group">
+                        <label for="mocksCompleted">Mock Tests:</label>
+                        <input type="number" id="mocksCompleted" class="input-field" placeholder="1" min="0" max="5">
+                    </div>
+                </div>
+                <button class="action-button" onclick="updateDailyLog()">Update Today's Progress</button>
+            </div>
+        </div>
+
+        <!-- Syllabus Tab -->
+        <div id="syllabus" class="tab-content">
+            <!-- QA Syllabus -->
+            <div class="card">
+                <h2>🔢 Quantitative Aptitude</h2>
+                <div class="subtopic-list">
+                    <div class="subtopic-item completed" onclick="toggleSubtopic(this)">
+                        <div class="subtopic-checkbox"></div>
+                        <div class="subtopic-name">Arithmetic - Percentages</div>
+                    </div>
+                    <div class="subtopic-item completed" onclick="toggleSubtopic(this)">
+                        <div class="subtopic-checkbox"></div>
+                        <div class="subtopic-name">Arithmetic - Profit & Loss</div>
+                    </div>
+                    <div class="subtopic-item" onclick="toggleSubtopic(this)">
+                        <div class="subtopic-checkbox"></div>
+                        <div class="subtopic-name">Arithmetic - Time & Work</div>
+                    </div>
+                    <div class="subtopic-item completed" onclick="toggleSubtopic(this)">
+                        <div class="subtopic-checkbox"></div>
+                        <div class="subtopic-name">Algebra - Linear Equations</div>
+                    </div>
+                    <div class="subtopic-item" onclick="toggleSubtopic(this)">
+                        <div class="subtopic-checkbox"></div>
+                        <div class="subtopic-name">Algebra - Quadratic Equations</div>
+                    </div>
+                    <div class="subtopic-item completed" onclick="toggleSubtopic(this)">
+                        <div class="subtopic-checkbox"></div>
+                        <div class="subtopic-name">Geometry - Triangles</div>
+                    </div>
+                    <div class="subtopic-item" onclick="toggleSubtopic(this)">
+                        <div class="subtopic-checkbox"></div>
+                        <div class="subtopic-name">Geometry - Circles</div>
+                    </div>
+                    <div class="subtopic-item completed" onclick="toggleSubtopic(this)">
+                        <div class="subtopic-checkbox"></div>
+                        <div class="subtopic-name">Numbers - HCF & LCM</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DILR Syllabus -->
+            <div class="card">
+                <h2>🧩 Data Interpretation & LR</h2>
+                <div class="subtopic-list">
+                    <div class="subtopic-item completed" onclick="toggleSubtopic(this)">
+                        <div class="subtopic-checkbox"></div>
+                        <div class="subtopic-name">Sets - Basic Set Theory</div>
+                    </div>
+                    <div class="subtopic-item" onclick="toggleSubtopic(this)">
+                        <div class="subtopic-checkbox"></div>
+                        <div class="subtopic-name">Sets - Venn Diagrams</div>
+                    </div>
+                    <div class="subtopic-item completed" onclick="toggleSubtopic(this)">
+                        <div class="subtopic-checkbox"></div>
+                        <div class="subtopic-name">Games & Tournaments</div>
+                    </div>
+                    <div class="subtopic-item" onclick="toggleSubtopic(this)">
+                        <div class="subtopic-checkbox"></div>
+                        <div class="subtopic-name">Seating Arrangements</div>
+                    </div>
+                    <div class="subtopic-item completed" onclick="toggleSubtopic(this)">
+                        <div class="subtopic-checkbox"></div>
+                        <div class="subtopic-name">Charts - Bar & Line</div>
+                    </div>
+                    <div class="subtopic-item" onclick="toggleSubtopic(this)">
+                        <div class="subtopic-checkbox"></div>
+                        <div class="subtopic-name">Charts - Pie Charts</div>
+                    </div>
+                    <div class="subtopic-item completed" onclick="toggleSubtopic(this)">
+                        <div class="subtopic-checkbox"></div>
+                        <div class="subtopic-name">Grids & Matrices</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VARC Syllabus -->
+            <div class="card">
+                <h2>📖 Verbal Ability & RC</h2>
+                <div class="subtopic-list">
+                    <div class="subtopic-item completed" onclick="toggleSubtopic(this)">
+                        <div class="subtopic-checkbox"></div>
+                        <div class="subtopic-name">RC - Business & Economics</div>
+                    </div>
+                    <div class="subtopic-item" onclick="toggleSubtopic(this)">
+                        <div class="subtopic-checkbox"></div>
+                        <div class="subtopic-name">RC - Science & Technology</div>
+                    </div>
+                    <div class="subtopic-item completed" onclick="toggleSubtopic(this)">
+                        <div class="subtopic-checkbox"></div>
+                        <div class="subtopic-name">RC - Social Sciences</div>
+                    </div>
+                    <div class="subtopic-item" onclick="toggleSubtopic(this)">
+                        <div class="subtopic-checkbox"></div>
+                        <div class="subtopic-name">Para Summary</div>
+                    </div>
+                    <div class="subtopic-item completed" onclick="toggleSubtopic(this)">
+                        <div class="subtopic-checkbox"></div>
+                        <div class="subtopic-name">Odd One Out</div>
+                    </div>
+                    <div class="subtopic-item" onclick="toggleSubtopic(this)">
+                        <div class="subtopic-checkbox"></div>
+                        <div class="subtopic-name">Para Jumbles</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Simulation Tab -->
+        <div id="simulation" class="tab-content">
+            <div class="card">
+                <h2>🎯 Progress Simulation</h2>
+                <div class="simulation-result">
+                    <div class="simulation-text">Based on your current pace and performance:</div>
+                    <div style="font-size: 1.4rem; font-weight: 700; color: #1565C0;">Expected CAT Score: 94.2 Percentile</div>
+                </div>
+                
+                <div class="projection-meter">
+                    <div class="projection-fill" id="projectionMeter" style="width: 94%"></div>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #666; margin-top: 5px;">
+                    <span>50%</span>
+                    <span>70%</span>
+                    <span>85%</span>
+                    <span>95%</span>
+                    <span>99%</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📊 Goal Tracking</h2>
+                <div class="input-group">
+                    <label for="targetPercentile">Target Percentile:</label>
+                    <input type="number" id="targetPercentile" class="input-field" placeholder="95" min="50" max="100" value="95">
+                </div>
+                
+                <div class="target-vs-actual">
+                    <div class="target-card target">
+                        <div class="target-number">95%</div>
+                        <div class="target-label">Target</div>
+                    </div>
+                    <div class="target-card actual">
+                        <div class="target-number" id="currentProjection">94.2%</div>
+                        <div class="target-label">Current Projection</div>
+                    </div>
+                </div>
+                
+                <div class="simulation-result">
+                    <div class="simulation-text" id="goalStatus">🎯 You're 0.8% away from your goal!</div>
+                    <div style="font-size: 0.9rem; color: #1565C0; margin-top: 8px;">
+                        Recommendation: Focus 2 more hours daily on DILR to reach 95%
+                    </div>
+                </div>
+                
+                <button class="action-button" onclick="updateSimulation()">Recalculate Projection</button>
+            </div>
+
+            <div class="card">
+                <h2>📈 Performance Insights</h2>
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 10px;">
+                    <div style="margin-bottom: 10px;"><strong>Strengths:</strong></div>
+                    <div style="margin-bottom: 8px;">• QA: Strong foundation (85% complete)</div>
+                    <div style="margin-bottom: 8px;">• Consistent daily study routine</div>
+                    <div style="margin-bottom: 15px;">• Good mock test frequency</div>
+                    
+                    <div style="margin-bottom: 10px;"><strong>Areas to Improve:</strong></div>
+                    <div style="margin-bottom: 8px;">• VARC: Need more RC practice</div>
+                    <div style="margin-bottom: 8px;">• DILR: Focus on complex puzzles</div>
+                    <div>• Time management in mocks</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Enhanced app data with detailed tracking
+        let appData = {
+            totalHours: 156,
+            avgDaily: 8.2,
+            mockTests: 12,
+            overallProgress: 78,
+            weeklyTarget: 50,
+            weeklyActual: 42,
+            streak: 12,
+            projectedPercentile: 94.2,
+            daysToCAT: 7,
+            sections: {
+                qa: { progress: 85, topics: 32, total: 40, hours: 28 },
+                dilr: { progress: 72, topics: 18, total: 25, hours: 20 },
+                varc: { progress: 68, topics: 15, total: 22, hours: 18 }
+            },
+            targetPercentile: 95
+        };
+
+        // Tab switching functionality
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Toggle subtopic completion
+        function toggleSubtopic(element) {
+            element.classList.toggle('completed');
+            
+            // Update section progress
+            updateSectionProgress();
+            
+            // Haptic feedback
+            if (navigator.vibrate) {
+                navigator.vibrate(30);
+            }
+        }
+
+        // Update section progress based on completed subtopics
+        function updateSectionProgress() {
+            const sections = ['qa', 'dilr', 'varc'];
+            let totalCompleted = 0;
+            let totalTopics = 0;
+            
+            document.querySelectorAll('.card').forEach(card => {
+                const completed = card.querySelectorAll('.subtopic-item.completed').length;
+                const total = card.querySelectorAll('.subtopic-item').length;
+                totalCompleted += completed;
+                totalTopics += total;
+            });
+            
+            const overallProgress = Math.roun
